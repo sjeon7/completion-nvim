@@ -319,11 +319,6 @@ local function handler_function(_, method, result)
           })
         end
       end
-      bufnr, winnr = fancy_floating_markdown(markdown_lines, {
-        pad_left = 0; pad_right = 1;
-        col = position['col']; width = position['width']; row = position['row']-1;
-        align = align
-      })
       M.winnr = winnr
 
       if winnr ~= nil and api.nvim_win_is_valid(winnr) then
@@ -346,7 +341,7 @@ end
 M.autoOpenHoverInPopup = function()
   if vim.fn.pumvisible() ~= 1 then return end
   for _, client in pairs(vim.lsp.buf_get_clients(0)) do
-    local default_handler = (client.config.handlers or {})['textDocument/hover'] or vim.lsp.handlers['textDocument/hover']
+    local default_handler = client.config.handlers['textDocument/hover'] or vim.lsp.handlers['textDocument/hover']
     if default_handler ~= handler_function then
       client.config.handlers['textDocument/hover'] = handler_function
     end
