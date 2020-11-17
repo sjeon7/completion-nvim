@@ -93,9 +93,11 @@ local fancy_floating_markdown = function(contents, opts)
   local max_width
   if opts.align == 'right' then
     local columns = api.nvim_get_option('columns')
-    max_width = columns - opts.col - opts.width
+    --max_width = columns - opts.col - opts.width
+    max_width = columns - opts.col - opts.width - 50
   else
-    max_width = opts.col - 1
+    --max_width = opts.col - 1
+    max_width = opts.col - 1 - 30
   end
 
   do
@@ -158,11 +160,25 @@ local fancy_floating_markdown = function(contents, opts)
 
   local width = 0
   for i, v in ipairs(stripped) do
+    local columns = api.nvim_get_option('columns')
     v = v:gsub("\r", "")
     if pad_left then v = (" "):rep(pad_left)..v end
     if pad_right then v = v..(" "):rep(pad_right) end
     stripped[i] = v
     width = math.max(width, #v)
+    if opts.align == 'right' then
+        if width > columns - opts.col - opts.width -50 then
+            width = columns - opts.col - opts.width - 50
+        else
+            width = width
+        end
+    else
+        if width > opts.col - 1 - 30 then
+            width = opts.col - 1 - 30
+        else
+            width = width
+        end
+    end
   end
 
   if opts.align == 'right' then
@@ -172,7 +188,7 @@ local fancy_floating_markdown = function(contents, opts)
     end
   else
     if width > opts.col then
-      width = opts.col - 1
+      width = opts.col - 1 - 30
     end
   end
 
@@ -274,8 +290,34 @@ local function handler_function(_, method, result)
       local align
       if position['col'] < total_column/2 then
         align = 'right'
+        if vim.fn.pum_getpos()['scrollbar'] then
+          bufnr, winnr = fancy_floating_markdown(markdown_lines, {
+            pad_left = 1; pad_right = 1;
+            col = position['col']+1; width = position['width']; row = position['row']-1;
+            align = align
+          })
+        else
+          bufnr, winnr = fancy_floating_markdown(markdown_lines, {
+            pad_left = 1; pad_right = 1;
+            col = position['col']; width = position['width']; row = position['row']-1;
+            align = align
+          })
+        end
       else
         align = 'left'
+        if vim.fn.pum_getpos()['scrollbar'] then
+          bufnr, winnr = fancy_floating_markdown(markdown_lines, {
+            pad_left = 1; pad_right = 1;
+            col = position['col']; width = position['width']-1; row = position['row']-1;
+            align = align
+          })
+        else
+          bufnr, winnr = fancy_floating_markdown(markdown_lines, {
+            pad_left = 1; pad_right = 1;
+            col = position['col']; width = position['width']; row = position['row']-1;
+            align = align
+          })
+        end
       end
       bufnr, winnr = fancy_floating_markdown(markdown_lines, {
         pad_left = 0; pad_right = 1;
